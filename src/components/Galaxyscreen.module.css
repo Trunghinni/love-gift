@@ -1,0 +1,177 @@
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: clamp(2rem, 6vh, 4rem) 1.5rem;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.ripple {
+  position: absolute;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 150, 210, 0.35);
+  transform: translate(-50%, -50%) scale(0);
+  animation: rippleOut 0.9s ease-out forwards;
+  pointer-events: none;
+  z-index: 20;
+}
+@keyframes rippleOut {
+  to {
+    transform: translate(-50%, -50%) scale(200);
+    opacity: 0;
+  }
+}
+
+.topBadge {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+.badgeLine {
+  display: block;
+  width: clamp(30px, 8vw, 60px);
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 100, 160, 0.6));
+}
+.topBadge .badgeLine:last-child {
+  background: linear-gradient(270deg, transparent, rgba(200, 100, 160, 0.6));
+}
+.badgeText {
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(0.75rem, 1.8vw, 1rem);
+  color: #d4a0c0;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  font-weight: 400;
+  white-space: nowrap;
+}
+
+.center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2rem;
+}
+
+.quoteWrap {
+  position: relative;
+  text-align: center;
+  padding: 0 2rem;
+}
+.quoteDecor {
+  position: absolute;
+  font-family: "Playfair Display", serif;
+  font-size: clamp(3rem, 8vw, 5rem);
+  line-height: 1;
+  color: rgba(200, 80, 150, 0.25);
+  top: -1.2rem;
+  left: 0.5rem;
+  pointer-events: none;
+  font-style: italic;
+}
+.quoteDecorClose {
+  top: auto;
+  bottom: -2rem;
+  left: auto;
+  right: 0.5rem;
+}
+.quote {
+  font-family: "Playfair Display", serif;
+  font-size: clamp(1.7rem, 5vw, 3rem);
+  font-weight: 400;
+  line-height: 1.45;
+  color: #f0e0f0;
+  text-shadow:
+    0 0 40px rgba(200, 80, 160, 0.5),
+    0 0 80px rgba(140, 40, 120, 0.3),
+    0 2px 4px rgba(0, 0, 0, 0.6);
+  text-align: center;
+}
+.quote em {
+  font-style: italic;
+  color: #ffc0e0;
+  text-shadow:
+    0 0 30px rgba(255, 140, 200, 0.6),
+    0 0 60px rgba(200, 80, 160, 0.4);
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  width: min(240px, 60vw);
+}
+.divLine {
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(200, 100, 160, 0.45),
+    transparent
+  );
+}
+.diamond {
+  font-size: 0.65rem;
+  color: rgba(220, 130, 180, 0.7);
+  animation: diamondPulse 2.5s ease-in-out infinite;
+}
+@keyframes diamondPulse {
+  0%,
+  100% {
+    opacity: 0.5;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.4);
+  }
+}
+
+.sub {
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(1rem, 2.5vw, 1.35rem);
+  color: #c8a0c0;
+  font-style: italic;
+  font-weight: 300;
+  letter-spacing: 0.04em;
+  text-align: center;
+  line-height: 1.7;
+  text-shadow: 0 0 20px rgba(200, 100, 160, 0.4);
+}
+
+.bottomHint {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+.hintText {
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(0.75rem, 1.8vw, 0.95rem);
+  color: rgba(200, 140, 180, 0.65);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+.hintPulse {
+  font-size: 0.55rem;
+  color: rgba(220, 130, 180, 0.5);
+  animation: hintBlink 1.8s ease-in-out infinite;
+}
+.hintPulse:last-child {
+  animation-delay: 0.9s;
+}
+@keyframes hintBlink {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}

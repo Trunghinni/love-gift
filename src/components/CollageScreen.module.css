@@ -1,0 +1,378 @@
+.screen {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  z-index: 10;
+  padding: clamp(0.8rem, 2.5vh, 1.5rem) 1rem;
+  overflow: hidden;
+}
+
+/* Header */
+.header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.6rem;
+  animation: fadeDown 0.8s ease both;
+}
+.tag {
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(0.85rem, 2vw, 1.1rem);
+  color: #e8c0d8;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  font-weight: 600;
+  text-shadow: 0 0 12px rgba(200, 80, 160, 0.5);
+}
+.viewToggle {
+  display: flex;
+  gap: 0.4rem;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 100px;
+  padding: 3px;
+  border: 1px solid rgba(200, 100, 160, 0.2);
+}
+.toggleBtn {
+  background: transparent;
+  color: rgba(200, 140, 180, 0.6);
+  border-radius: 100px;
+  padding: 4px 14px;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  transition: all 0.25s ease;
+}
+.toggleBtn.active {
+  background: rgba(180, 50, 130, 0.45);
+  color: #f0d0e8;
+  box-shadow: 0 0 10px rgba(180, 50, 130, 0.4);
+}
+
+/* ── Sphere View ─────────────────────────────────── */
+.sphereWrap {
+  position: relative;
+  flex: 1;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: grab;
+  animation: fadeUp 0.9s 0.2s ease both;
+}
+.sphereWrap:active {
+  cursor: grabbing;
+}
+
+.sphereAura {
+  position: absolute;
+  width: min(70vw, 320px);
+  height: min(70vw, 320px);
+  border-radius: 50%;
+  background: radial-gradient(
+    circle,
+    rgba(180, 50, 140, 0.12) 0%,
+    transparent 70%
+  );
+  pointer-events: none;
+  animation: auraBreath 3.5s ease-in-out infinite;
+}
+@keyframes auraBreath {
+  0%,
+  100% {
+    transform: scale(1);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.08);
+    opacity: 1;
+  }
+}
+
+.sphere {
+  position: relative;
+  width: 1px;
+  height: 1px;
+  transform-style: preserve-3d;
+}
+
+.sphereItem {
+  position: absolute;
+  width: clamp(70px, 16vw, 110px);
+  height: clamp(70px, 16vw, 110px);
+  transform-origin: center center;
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.6),
+    0 0 0 1.5px rgba(220, 100, 170, 0.3);
+  transition: box-shadow 0.2s ease;
+  will-change: transform, opacity;
+}
+.sphereItem:hover {
+  box-shadow:
+    0 4px 20px rgba(0, 0, 0, 0.6),
+    0 0 0 2px rgba(255, 150, 200, 0.6),
+    0 0 25px rgba(220, 100, 170, 0.4);
+}
+
+.sphereImg {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  filter: saturate(1.15) brightness(0.9);
+  transition: filter 0.3s ease;
+}
+.sphereItem:hover .sphereImg {
+  filter: saturate(1.3) brightness(1.05);
+}
+
+.addSphereBtn {
+  width: 100%;
+  height: 100%;
+  background: rgba(180, 50, 130, 0.15);
+  border: 1px dashed rgba(200, 100, 160, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(200, 140, 180, 0.6);
+  font-size: 1.6rem;
+  font-weight: 300;
+  transition: all 0.2s;
+}
+.addSphereBtn:hover {
+  background: rgba(180, 50, 130, 0.28);
+  color: #ffd0e8;
+}
+
+.removeBtn {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.7);
+  color: #ffd0d8;
+  font-size: 13px;
+  line-height: 20px;
+  text-align: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+  z-index: 5;
+  padding: 0;
+}
+.sphereItem:hover .removeBtn {
+  opacity: 1;
+}
+.cell:hover .removeBtn {
+  opacity: 1;
+}
+
+.dragHint {
+  position: absolute;
+  bottom: -1.2rem;
+  left: 50%;
+  transform: translateX(-50%);
+  font-family: "Cormorant Garamond", serif;
+  font-size: 0.7rem;
+  color: rgba(200, 130, 170, 0.45);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* ── Grid / Oval View ────────────────────────────── */
+.gridWrap {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeUp 0.9s 0.2s ease both;
+}
+
+.ovalOuter {
+  position: relative;
+  width: min(300px, 82vw);
+  height: min(460px, 72vh);
+}
+
+.ring1,
+.ring2,
+.ring3 {
+  position: absolute;
+  border-radius: 50%;
+  border: 1px solid rgba(192, 96, 160, 0.2);
+  pointer-events: none;
+  animation: ringPulse 3.5s ease-in-out infinite;
+}
+.ring1 {
+  inset: -10px;
+  animation-delay: 0s;
+}
+.ring2 {
+  inset: -22px;
+  animation-delay: 1.2s;
+  border-color: rgba(192, 96, 160, 0.12);
+}
+.ring3 {
+  inset: -36px;
+  animation-delay: 2.4s;
+  border-color: rgba(192, 96, 160, 0.06);
+}
+@keyframes ringPulse {
+  0%,
+  100% {
+    opacity: 0.3;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.02);
+  }
+}
+
+.oval {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  box-shadow:
+    0 0 55px rgba(192, 80, 150, 0.4),
+    0 0 120px rgba(130, 30, 100, 0.18),
+    inset 0 0 45px rgba(0, 0, 0, 0.6);
+}
+
+.grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(4, 1fr);
+  gap: 2px;
+  background: #180012;
+}
+
+.cell {
+  position: relative;
+  overflow: hidden;
+  background: #200016;
+}
+
+.img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.4s ease;
+  filter: saturate(1.1) brightness(0.88);
+}
+.cell:hover .img {
+  transform: scale(1.08);
+  filter: saturate(1.25) brightness(0.95);
+}
+
+.addBtn {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+.addBtn:hover {
+  background: rgba(200, 80, 150, 0.2);
+}
+.plus {
+  font-size: 1.5rem;
+  color: #906080;
+}
+
+.ovalGlow {
+  position: absolute;
+  inset: -3px;
+  border-radius: 50%;
+  pointer-events: none;
+  box-shadow:
+    0 0 0 2px rgba(220, 100, 170, 0.35),
+    0 0 30px rgba(192, 60, 140, 0.5);
+}
+
+/* ── Lyric ───────────────────────────────────────── */
+.lyricWrap {
+  min-height: 2rem;
+  display: flex;
+  align-items: center;
+  transition:
+    opacity 0.5s ease,
+    transform 0.5s ease;
+}
+.lyricIn {
+  opacity: 1;
+  transform: translateY(0);
+}
+.lyricOut {
+  opacity: 0;
+  transform: translateY(6px);
+}
+
+.lyric {
+  font-family: "Cormorant Garamond", serif;
+  font-size: clamp(0.9rem, 2.5vw, 1.15rem);
+  color: #e0b8d0;
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: 0.05em;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(220, 160, 200, 0.55);
+}
+
+/* ── Next button ─────────────────────────────────── */
+.nextBtn {
+  padding: 0.7rem 2.2rem;
+  background: linear-gradient(135deg, #7a1232, #b82860);
+  color: #fde8f4;
+  border-radius: 100px;
+  font-size: 1.05rem;
+  letter-spacing: 0.1em;
+  box-shadow:
+    0 4px 24px rgba(130, 18, 55, 0.55),
+    0 0 0 1px rgba(200, 80, 140, 0.2);
+  transition: all 0.3s ease;
+  animation: fadeUp 0.9s 0.5s ease both;
+}
+.nextBtn:hover {
+  transform: translateY(-3px) scale(1.02);
+  box-shadow:
+    0 8px 36px rgba(130, 18, 55, 0.7),
+    0 0 0 1px rgba(200, 80, 140, 0.4);
+}
+.nextBtn:active {
+  transform: translateY(-1px) scale(0.99);
+}
+
+/* Animations */
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes fadeDown {
+  from {
+    opacity: 0;
+    transform: translateY(-14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
