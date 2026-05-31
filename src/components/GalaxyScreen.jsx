@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "./GalaxyScreen.module.css";
+import styles from "./Galaxyscreen.module.css";
 
 export default function GalaxyScreen({ onNext }) {
   const [revealed, setRevealed] = useState(false);
