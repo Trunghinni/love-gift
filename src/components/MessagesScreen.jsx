@@ -4,16 +4,15 @@ import styles from "./MessagesScreen.module.css";
 const LETTER_LINES = [
   {
     delay: 0.3,
-    text: "Chúc vợ iu lun thành công trong học tập, công việc và ngoan ngoãn.",
+    text: "Chúc mấy con vợ iu lun thành công trong học tập, công việc và ngoan ngoãn.",
   },
-  {
-    delay: 0.8,
-    text: "Luôn vui vẻ, nở nụ cười trên môi và đặc biệt là không được tiêu cực nhé.",
-  },
-  { delay: 1.4, text: "Chúc bé iu ngày càng xinh xắn, dễ thương," },
-  { delay: 1.9, text: "mong em có tất cả trừ vất vả." },
 ];
-const SIGNATURE = { delay: 2.6, text: '"Thương vợ iu của tui nhiều lắm..."' };
+
+// Thêm lại phần chữ ký (SIGNATURE) bị thiếu để không bị lỗi code
+const SIGNATURE = {
+  delay: 1.0,
+  text: '"Thương mấy con vợ iu của tui nhiều lắm... < 3 |"',
+};
 
 export default function MessagesScreen({ onBack }) {
   const [revealed, setRevealed] = useState(false);

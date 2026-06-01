@@ -19,9 +19,7 @@ const LYRICS = [
 ];
 
 export default function CollageScreen({ onNext }) {
-  const [photos, setPhotos] = useState(() => {
-    return Array.from({ length: 12 }, (_, i) => `images/${i + 1}.jpg`);
-  });
+  const [photos, setPhotos] = useState([]);
   const [lyricIdx, setLyricIdx] = useState(0);
   const [lyricVisible, setLyricVisible] = useState(true);
   const [viewMode, setViewMode] = useState("sphere");
