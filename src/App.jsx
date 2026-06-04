@@ -1,18 +1,10 @@
 /**
- * App.jsx — Điều phối toàn bộ flow của app
- *
- * FLOW CÁC STAGE:
- *   stage 0 → GalaxyScreen   : Màn hình chào "Chạm để tiếp tục"
- *             GalaxyIntro (3D): Giữ nút → hạt bụi tụ thành chữ "Chúc Mừng"
- *   stage 1 → CollageScreen   : Quả cầu ảnh 3D xoay, nút "Đọc thư"
- *   stage 2 → MessagesScreen  : Lá thư tình
- *
- * Background canvas (useGalaxy) chạy xuyên suốt tất cả stage.
+ * App.jsx — Điều phối toàn bộ flow + nhạc nền
  */
 
 import React, { useRef, useState, useEffect } from "react";
 import { Canvas } from "@react-three/fiber";
-import { Stars, OrbitControls } from "@react-three/drei";
+import { Stars } from "@react-three/drei";
 
 import { useGalaxy } from "./hooks/useGalaxy";
 import GalaxyScreen from "./components/GalaxyScreen";
@@ -23,22 +15,32 @@ import MessagesScreen from "./components/MessagesScreen";
 import "./App.css";
 
 export default function App() {
-  // stage 0 = intro galaxy, stage 1 = collage sphere, stage 2 = letter
   const [stage, setStage] = useState(0);
-
-  // Ref dùng cho nút "giữ để bắt đầu" trong GalaxyIntro
   const isHolding = useRef(false);
-
-  // Canvas background ref cho useGalaxy hook
   const canvasRef = useRef(null);
+  const audioRef = useRef(null);
+  const musicStarted = useRef(false);
 
-  // Background galaxy canvas active khi stage === 0 hoặc stage === 2
-  // (CollageScreen dùng Three.js Canvas riêng nên không cần nebula)
+  // Khởi tạo audio một lần
+  useEffect(() => {
+    audioRef.current = new Audio("/bgm.mp3");
+    audioRef.current.loop = true;
+    audioRef.current.volume = 0.5;
+  }, []);
+
+  // Play nhạc lần đầu user chạm — chỉ gọi 1 lần
+  function startMusic() {
+    if (musicStarted.current) return;
+    musicStarted.current = true;
+    audioRef.current?.play().catch(() => {});
+  }
+
   const bgActive = stage !== 1;
   useGalaxy(canvasRef, bgActive);
 
   return (
     <div
+      onClick={startMusic}
       style={{
         position: "fixed",
         inset: 0,
@@ -46,7 +48,7 @@ export default function App() {
         overflow: "hidden",
       }}
     >
-      {/* ── Background canvas (nebula + stars + hearts) ── */}
+      {/* Background canvas (nebula + stars + hearts) */}
       <canvas
         ref={canvasRef}
         style={{
@@ -54,7 +56,6 @@ export default function App() {
           inset: 0,
           width: "100%",
           height: "100%",
-          // Ẩn khi ở stage 1 vì Three.js Canvas che phủ hoàn toàn
           opacity: stage === 1 ? 0 : 1,
           transition: "opacity 0.6s ease",
           pointerEvents: "none",
@@ -62,10 +63,9 @@ export default function App() {
         }}
       />
 
-      {/* ── STAGE 0: Galaxy Intro ── */}
+      {/* STAGE 0: Galaxy Intro */}
       {stage === 0 && (
         <>
-          {/* Three.js canvas chỉ cho particle galaxy + text */}
           <div
             style={{
               position: "absolute",
@@ -89,7 +89,6 @@ export default function App() {
                 speed={0.3}
               />
               <ambientLight intensity={0.5} color="#ff1a75" />
-              {/* GalaxyIntro: hạt bụi tụ thành chữ khi giữ nút */}
               <GalaxyIntro
                 isHolding={isHolding}
                 onComplete={() => setStage(1)}
@@ -98,21 +97,20 @@ export default function App() {
             </Canvas>
           </div>
 
-          {/* GalaxyScreen: UI overlay (badge, quote, nút giữ) */}
           <div style={{ position: "absolute", inset: 0, zIndex: 2 }}>
             <GalaxyScreen isHolding={isHolding} onNext={() => setStage(1)} />
           </div>
         </>
       )}
 
-      {/* ── STAGE 1: CollageScreen (quả cầu ảnh 3D) ── */}
+      {/* STAGE 1: CollageScreen */}
       {stage === 1 && (
         <div style={{ position: "absolute", inset: 0, zIndex: 2 }}>
           <CollageScreen onNext={() => setStage(2)} />
         </div>
       )}
 
-      {/* ── STAGE 2: MessagesScreen (lá thư) ── */}
+      {/* STAGE 2: MessagesScreen */}
       {stage === 2 && (
         <div style={{ position: "absolute", inset: 0, zIndex: 2 }}>
           <MessagesScreen onBack={() => setStage(1)} />
