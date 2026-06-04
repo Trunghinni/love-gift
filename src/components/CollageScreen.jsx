@@ -1,10 +1,22 @@
-import React, { useRef, useState, useEffect, useCallback } from "react";
+/**
+ * CollageScreen.jsx — Màn hình quả cầu ảnh 3D
+ *
+ * FIX:
+ * 1. Dùng Three.js Canvas + PhotoUniverse thay cho CSS sphere
+ *    → Khớp đúng với các ảnh trong video (sphere 3D thật, không phải CSS transform)
+ * 2. stage nội bộ: 1 = sphere đang xoay, 2 = exploded
+ * 3. Nút "Nổ tung" → set stage 2, nút "Gom lại" → set stage 1
+ * 4. Giữ lyricsSystem và nút "Đọc thư" từ bản gốc
+ * 5. Giữ viewMode toggle (Khối 3D / Lưới Oval) nhưng
+ *    "Khối 3D" giờ dùng Three.js thật
+ */
+
+import React, { useState, useEffect, useRef, Suspense } from "react";
+import { Canvas } from "@react-three/fiber";
+import { Stars, OrbitControls } from "@react-three/drei";
+import PhotoUniverse from "./PhotoUniverse";
 import styles from "./CollageScreen.module.css";
 
-const MAX_PHOTOS = 12;
-
-// Trình tự lời bài hát trích xuất từ file bgm.mp3 và video
-// Trình tự lời bài hát trích xuất từ file bgm.mp3 và video
 const LYRICS = [
   '"Ngày ta nắm tay yêu công khai giữa đời"',
   '"Là ngày thế giới mất hai nỗi buồn"',
@@ -18,21 +30,38 @@ const LYRICS = [
   '"Ánh mắt em hiền là muốn đến hôn lên liền trời ơi"',
 ];
 
+// Grid/Oval view giữ nguyên từ bản gốc (CSS-only)
+function GridView() {
+  const [photos] = useState(() =>
+    Array.from({ length: 12 }, (_, i) => `images/${i + 1}.jpg`),
+  );
+  return (
+    <div className={styles.gridWrap}>
+      <div className={styles.ovalOuter}>
+        <div className={styles.ring1} />
+        <div className={styles.ring2} />
+        <div className={styles.ring3} />
+        <div className={styles.oval}>
+          <div className={styles.grid}>
+            {photos.map((src, i) => (
+              <div key={i} className={styles.cell}>
+                <img src={src} alt="" className={styles.img} />
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className={styles.ovalGlow} />
+      </div>
+    </div>
+  );
+}
+
 export default function CollageScreen({ onNext }) {
-  const [photos, setPhotos] = useState([]);
   const [lyricIdx, setLyricIdx] = useState(0);
   const [lyricVisible, setLyricVisible] = useState(true);
-  const [viewMode, setViewMode] = useState("sphere");
-  const inputRef = useRef(null);
-  const sphereRef = useRef(null);
-  const dragRef = useRef({
-    dragging: false,
-    startX: 0,
-    startY: 0,
-    rotX: 15,
-    rotY: 0,
-  });
-  const rotRef = useRef({ x: 15, y: 0, velX: 0, velY: 0.18 });
+  const [viewMode, setViewMode] = useState("sphere"); // "sphere" | "grid"
+  // sphereStage: 1 = xoay bình thường, 2 = nổ tung
+  const [sphereStage, setSphereStage] = useState(1);
 
   // Lyric cycling
   useEffect(() => {
@@ -42,102 +71,18 @@ export default function CollageScreen({ onNext }) {
         setLyricIdx((i) => (i + 1) % LYRICS.length);
         setLyricVisible(true);
       }, 500);
-    }, 2500); // Tốc độ chuyển lời bài hát 3.5s/câu
+    }, 2800);
     return () => clearInterval(interval);
   }, []);
-
-  // Auto-rotate sphere
-  useEffect(() => {
-    if (viewMode !== "sphere") return;
-    let raf;
-    function tick() {
-      if (!dragRef.current.dragging) {
-        rotRef.current.y += rotRef.current.velY;
-        rotRef.current.x += rotRef.current.velX;
-        rotRef.current.x = Math.max(-40, Math.min(40, rotRef.current.x));
-        rotRef.current.velX *= 0.97;
-        updateSpherePositions();
-      }
-      raf = requestAnimationFrame(tick);
-    }
-    raf = requestAnimationFrame(tick);
-    return () => cancelAnimationFrame(raf);
-  }, [viewMode, photos]);
-
-  function updateSpherePositions() {
-    const container = sphereRef.current;
-    if (!container) return;
-    const items = container.querySelectorAll("[data-idx]");
-    const n = items.length;
-    if (n === 0) return;
-    const rx = (rotRef.current.x * Math.PI) / 180;
-    const ry = (rotRef.current.y * Math.PI) / 180;
-    items.forEach((el, i) => {
-      const phi = Math.acos(-1 + (2 * i) / n);
-      const theta = Math.sqrt(n * Math.PI) * phi;
-      const x0 = Math.sin(phi) * Math.cos(theta);
-      const y0 = Math.cos(phi);
-      const z0 = Math.sin(phi) * Math.sin(theta);
-      const y1 = y0 * Math.cos(rx) - z0 * Math.sin(rx);
-      const z1 = y0 * Math.sin(rx) + z0 * Math.cos(rx);
-      const x2 = x0 * Math.cos(ry) + z1 * Math.sin(ry);
-      const z2 = -x0 * Math.sin(ry) + z1 * Math.cos(ry);
-      const radius = Math.min(window.innerWidth, window.innerHeight) * 0.3;
-      const scale = (z2 + 1.8) / 2.8;
-      const opacity = Math.max(0.15, (z2 + 1.2) / 2.2);
-      el.style.transform = `translate3d(${x2 * radius}px, ${y1 * radius}px, ${z2 * 100}px) scale(${scale * 0.85})`;
-      el.style.opacity = opacity;
-      el.style.zIndex = Math.round(z2 * 100 + 100);
-    });
-  }
-
-  const onPointerDown = useCallback((e) => {
-    dragRef.current.dragging = true;
-    dragRef.current.lastX = e.clientX;
-    dragRef.current.lastY = e.clientY;
-  }, []);
-
-  const onPointerMove = useCallback((e) => {
-    if (!dragRef.current.dragging) return;
-    const dx = e.clientX - dragRef.current.lastX;
-    const dy = e.clientY - dragRef.current.lastY;
-    rotRef.current.y += dx * 0.4;
-    rotRef.current.velX = dy * 0.05;
-    dragRef.current.lastX = e.clientX;
-    dragRef.current.lastY = e.clientY;
-    updateSpherePositions();
-  }, []);
-
-  const onPointerUp = useCallback(() => {
-    dragRef.current.dragging = false;
-    rotRef.current.velY = 0.18;
-  }, []);
-
-  function handleFiles(e) {
-    const files = Array.from(e.target.files || []);
-    const urls = files
-      .slice(0, MAX_PHOTOS - photos.length)
-      .map((f) => URL.createObjectURL(f));
-    setPhotos((prev) => [...prev, ...urls].slice(0, MAX_PHOTOS));
-    e.target.value = "";
-  }
-
-  function removePhoto(i) {
-    setPhotos((prev) => prev.filter((_, idx) => idx !== i));
-  }
 
   function handleNext() {
     window.__spawnHearts?.();
     setTimeout(onNext, 400);
   }
 
-  const slots = [
-    ...photos,
-    ...Array(Math.max(0, MAX_PHOTOS - photos.length)).fill(null),
-  ];
-
   return (
     <div className={styles.screen}>
+      {/* ── Header ── */}
       <div className={styles.header}>
         <span className={styles.tag}>"Aaa em xinh ngoan yêu em số 1"</span>
         <div className={styles.viewToggle}>
@@ -156,101 +101,120 @@ export default function CollageScreen({ onNext }) {
         </div>
       </div>
 
+      {/* ── Sphere 3D View (Three.js) ── */}
       {viewMode === "sphere" && (
         <div
-          className={styles.sphereWrap}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={onPointerUp}
-          onPointerLeave={onPointerUp}
+          style={{
+            position: "relative",
+            flex: 1,
+            width: "100%",
+            minHeight: 0,
+          }}
         >
-          <div className={styles.sphereAura} />
-          <div
-            className={styles.sphere}
-            ref={sphereRef}
-            style={{ perspective: "800px" }}
+          <Canvas
+            camera={{ position: [0, 0, 10], fov: 55 }}
+            gl={{ antialias: true, alpha: true }}
+            style={{ background: "transparent", width: "100%", height: "100%" }}
+            dpr={[1, 2]}
           >
-            {slots.map((src, i) => (
-              <div key={i} data-idx={i} className={styles.sphereItem}>
-                {src ? (
-                  <>
-                    <img src={src} alt="" className={styles.sphereImg} />
-                    <button
-                      className={styles.removeBtn}
-                      onClick={() => removePhoto(i)}
-                    >
-                      ×
-                    </button>
-                  </>
-                ) : (
-                  <button
-                    className={styles.addSphereBtn}
-                    onClick={() => inputRef.current?.click()}
-                  >
-                    <span>+</span>
-                  </button>
+            <Stars
+              radius={60}
+              depth={40}
+              count={1500}
+              factor={2}
+              saturation={0.2}
+              fade
+              speed={0.3}
+            />
+            <ambientLight intensity={0.5} color="#ffb6e0" />
+            <pointLight position={[8, 8, 8]} intensity={1.2} color="#fff" />
+            <pointLight
+              position={[-6, -4, -6]}
+              intensity={0.4}
+              color="#ff69b4"
+            />
+
+            <Suspense fallback={null}>
+              <PhotoUniverse stage={sphereStage} />
+            </Suspense>
+
+            <OrbitControls
+              enableZoom
+              enablePan={false}
+              minDistance={5}
+              maxDistance={18}
+              dampingFactor={0.06}
+              enableDamping
+            />
+          </Canvas>
+
+          {/* Nút nổ tung / gom lại — overlay trên canvas */}
+          <div
+            style={{
+              position: "absolute",
+              bottom: 8,
+              left: 0,
+              right: 0,
+              display: "flex",
+              justifyContent: "center",
+              gap: 12,
+              pointerEvents: "none",
+            }}
+          >
+            {sphereStage === 1 ? (
+              <button
+                style={overlayBtn("#b82060", "#fff")}
+                onClick={() => setSphereStage(2)}
+              >
+                💥 Nổ tung!
+              </button>
+            ) : (
+              <button
+                style={overlayBtn(
+                  "transparent",
+                  "#ff69b4",
+                  "1px solid #ff69b4",
                 )}
-              </div>
-            ))}
-          </div>
-          <p className={styles.dragHint}>✦ Kéo để xoay ảnh ✦</p>
-        </div>
-      )}
-
-      {viewMode === "grid" && (
-        <div className={styles.gridWrap}>
-          <div className={styles.ovalOuter}>
-            <div className={styles.ring1} />
-            <div className={styles.ring2} />
-            <div className={styles.ring3} />
-            <div className={styles.oval}>
-              <div className={styles.grid}>
-                {slots.map((src, i) => (
-                  <div key={i} className={styles.cell}>
-                    {src ? (
-                      <>
-                        <img src={src} alt="" className={styles.img} />
-                        <button
-                          className={styles.removeBtn}
-                          onClick={() => removePhoto(i)}
-                        >
-                          ×
-                        </button>
-                      </>
-                    ) : (
-                      <button
-                        className={styles.addBtn}
-                        onClick={() => inputRef.current?.click()}
-                      >
-                        <span className={styles.plus}>+</span>
-                      </button>
-                    )}
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className={styles.ovalGlow} />
+                onClick={() => setSphereStage(1)}
+              >
+                🔄 Gom lại
+              </button>
+            )}
           </div>
         </div>
       )}
 
-      <input
-        ref={inputRef}
-        type="file"
-        accept="image/*"
-        multiple
-        onChange={handleFiles}
-      />
+      {/* ── Grid Oval View (CSS) ── */}
+      {viewMode === "grid" && <GridView />}
 
+      {/* ── Lyrics ── */}
       <div
         className={`${styles.lyricWrap} ${lyricVisible ? styles.lyricIn : styles.lyricOut}`}
       >
         <p className={styles.lyric}>{LYRICS[lyricIdx]}</p>
       </div>
 
+      {/* ── Next button ── */}
       <button className={styles.nextBtn} onClick={handleNext}>
         Đọc thư 💌
       </button>
     </div>
   );
+}
+
+function overlayBtn(bg, color, border = "none") {
+  return {
+    pointerEvents: "auto",
+    padding: "9px 28px",
+    background: bg,
+    color,
+    border,
+    borderRadius: 40,
+    cursor: "pointer",
+    fontSize: "0.88rem",
+    letterSpacing: "0.1em",
+    fontFamily: "'Cormorant Garamond', serif",
+    boxShadow: bg !== "transparent" ? "0 0 20px rgba(180,32,96,0.5)" : "none",
+    transition: "transform 0.15s",
+  };
 }

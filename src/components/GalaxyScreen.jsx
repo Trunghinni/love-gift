@@ -1,7 +1,16 @@
+/**
+ * GalaxyScreen.jsx — Màn hình chào đầu tiên
+ *
+ * FIX:
+ * - Nhận thêm prop `isHolding` để truyền xuống nút giữ
+ * - Nút "Giữ để bắt đầu" set isHolding.current thay vì gọi onNext trực tiếp
+ * - Vẫn giữ onClick toàn màn → onNext() để tap nhanh cũng được
+ */
+
 import React, { useEffect, useState } from "react";
 import styles from "./Galaxyscreen.module.css";
 
-export default function GalaxyScreen({ onNext }) {
+export default function GalaxyScreen({ onNext, isHolding }) {
   const [revealed, setRevealed] = useState(false);
   const [ripple, setRipple] = useState(null);
   const [clicked, setClicked] = useState(false);
@@ -20,6 +29,14 @@ export default function GalaxyScreen({ onNext }) {
     setTimeout(() => setRipple(null), 900);
     setTimeout(onNext, 700);
   }
+
+  // Nút giữ — chỉ set ref, GalaxyIntro lắng nghe
+  const handleHoldStart = () => {
+    if (isHolding) isHolding.current = true;
+  };
+  const handleHoldEnd = () => {
+    if (isHolding) isHolding.current = false;
+  };
 
   return (
     <div
@@ -62,7 +79,7 @@ export default function GalaxyScreen({ onNext }) {
           <p className={styles.quote}>
             Chúc Mừng
             <br />
-            <em>Quốc tế thiếu nhi </em>
+            <em>Quốc tế thiếu nhi</em>
           </p>
           <span className={`${styles.quoteDecor} ${styles.quoteDecorClose}`}>
             "
@@ -78,13 +95,71 @@ export default function GalaxyScreen({ onNext }) {
         <p className={styles.sub}>Bé iu của anh</p>
       </div>
 
+      {/* Nút giữ để bắt đầu — ngăn sự kiện click bubble lên div cha */}
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          gap: "0.6rem",
+          opacity: revealed ? 1 : 0,
+          transition: "opacity 1.2s ease 1s",
+          userSelect: "none",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <p
+          style={{
+            fontFamily: "'Cormorant Garamond', serif",
+            color: "rgba(200, 140, 180, 0.7)",
+            fontSize: "clamp(0.75rem, 1.8vw, 0.9rem)",
+            letterSpacing: "0.14em",
+            textTransform: "uppercase",
+          }}
+        >
+          Giữ để bắt đầu
+        </p>
+        <div
+          onPointerDown={handleHoldStart}
+          onPointerUp={handleHoldEnd}
+          onPointerLeave={handleHoldEnd}
+          onTouchStart={handleHoldStart}
+          onTouchEnd={handleHoldEnd}
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            border: "1.5px solid rgba(255, 105, 180, 0.5)",
+            background: "rgba(255, 105, 180, 0.08)",
+            cursor: "pointer",
+            boxShadow: "0 0 20px rgba(255, 105, 180, 0.25)",
+            transition: "all 0.2s ease",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "rgba(255,105,180,0.2)";
+            e.currentTarget.style.boxShadow = "0 0 30px rgba(255,105,180,0.5)";
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "rgba(255,105,180,0.08)";
+            e.currentTarget.style.boxShadow = "0 0 20px rgba(255,105,180,0.25)";
+          }}
+        >
+          <span style={{ color: "rgba(255,150,200,0.6)", fontSize: "1.2rem" }}>
+            ✦
+          </span>
+        </div>
+      </div>
+
       {/* Bottom hint */}
       <div
         className={styles.bottomHint}
         style={{
           opacity: revealed ? 1 : 0,
           transform: revealed ? "translateY(0)" : "translateY(16px)",
-          transition: "opacity 1.2s ease 1.2s, transform 1.2s ease 1.2s",
+          transition: "opacity 1.2s ease 1.4s, transform 1.2s ease 1.4s",
         }}
       >
         <span className={styles.hintPulse}>✦</span>
